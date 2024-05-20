@@ -1,65 +1,45 @@
 #include <iostream>
-#include <fstream>
 #include <string>
-
+#include <fstream>
+#include <algorithm>
+#include <unordered_set>
 using namespace std;
+
+struct Ucenik
+{
+    char ImePrezime[50];
+    float prosjek;
+};
+
+bool cmp(Ucenik &a, Ucenik &b)
+{
+    return a.prosjek > b.prosjek;
+}
 
 int main()
 {
-    int brUcenika;
-    cout << "Unesite broj ucenika: ";
-    cin >> brUcenika;
-    cin.ignore();
+    struct Ucenik ucenici[100];
+    int brUcenika = 0;
+    fstream datoteka1("C:\\Users\\Ga-gama\\Documents\\AiP2\\.vscode\\DzProsjekOcjena\\ucenici.bin", ios::binary | ios::in);
 
-    string ime_prezime[100];
-    double prosjek[100];
-
-    for (int i = 0; i < brUcenika; i++)
+    while (datoteka1.read((char *)&ucenici[brUcenika], sizeof(Ucenik)))
     {
-        cout << "Unesite prosjek " << i + 1 << ". ucenika: ";
-        cin >> prosjek[i];
+        cout << ucenici[brUcenika].ImePrezime << " " << ucenici[brUcenika].prosjek << endl;
+        brUcenika++;
+    }
+    datoteka1.close();
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++)
+    {
         cin.ignore();
-        cout << "Unesite ime i prezime " << i + 1 << ". ucenika: ";
-        getline(cin, ime_prezime[i]);
+        cin.getline(ucenici[brUcenika + i].ImePrezime, 50);
+        cin >> ucenici[brUcenika].prosjek;
     }
+    sort(ucenici, ucenici + brUcenika + n, cmp);
 
-    for (int i = 0; i < brUcenika - 1; i++)
-    {
-        for (int j = i + 1; j < brUcenika; j++)
-        {
-            if (prosjek[i] < prosjek[j])
-            {
-                swap(prosjek[i], prosjek[j]);
-                swap(ime_prezime[i], ime_prezime[j]);
-            }
-        }
-    }
-
-    fstream datotekaOut("ucenici.bin", ios::binary | ios::out);
-    for (int i = 0; i < brUcenika; i++)
-    {
-        datotekaOut.write((char *)&prosjek[i], sizeof(double));
-        int len = ime_prezime[i].size();
-        datotekaOut.write((char *)&len, sizeof(int));
-        datotekaOut.write((char *)&ime_prezime[i], sizeof(string));
-    }
-    datotekaOut.close();
-
-    fstream datotekaIn("ucenici.bin", ios::binary | ios::in);
-    for (int i = 0; i < brUcenika; i++)
-    {
-        string ime_prezime;
-        double prosjek;
-        datotekaIn.read((char *)&prosjek, sizeof(double));
-        int len;
-        datotekaIn.read((char *)&len, sizeof(int));
-        char *buffer = new char[len + 1];
-        datotekaIn.read(buffer, len);
-        buffer[len] = '\0';
-        ime_prezime = buffer;
-        delete[] buffer;
-        cout << ime_prezime << " " << prosjek << endl;
-    }
-    datotekaIn.close();
+    fstream datoteka2("C:\\Users\\Ga-gama\\Documents\\AiP2\\.vscode\\DzProsjekOcjena\\ucenici.bin", ios::binary | ios::out | ios::trunc);
+    datoteka2.write((char *)ucenici, sizeof(Ucenik) * (brUcenika + n));
+    datoteka2.close();
     return 0;
 }
